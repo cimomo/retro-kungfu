@@ -27,6 +27,7 @@ export class Player extends Phaser.GameObjects.Container {
     this.tornadoCooldown = 0;
     this.tornadoActive = false;
     this.tornadoHitRegistered = false;
+    this.tornadoTime = 0;
     this.respawning = false;
 
     // Combo tracking
@@ -57,12 +58,6 @@ export class Player extends Phaser.GameObjects.Container {
       this.attackHit = false;
       this.state = 'idle';
     }
-    if (anim.key === 'player-kick' && this.tornadoActive) {
-      this.tornadoActive = false;
-      this.invincible = false;
-      this.invincibleTimer = 0;
-      this.sprite.setAlpha(1);
-    }
     if (anim.key === 'player-hurt') {
       if (this.hp <= 0) {
         this.onDeath();
@@ -91,7 +86,12 @@ export class Player extends Phaser.GameObjects.Container {
     this.invincibleTimer = 2000;
     this.state = 'idle';
     this.isAttacking = false;
-    this.tornadoActive = false;
+    if (this.tornadoActive) {
+      this.tornadoActive = false;
+      this.scene.tweens.killTweensOf(this.sprite);
+      this.sprite.clearTint();
+      this.sprite.setScale(1);
+    }
     this.sprite.setPosition(0, 0);
     this.sprite.play('player-idle');
     this.respawning = false;
@@ -122,8 +122,15 @@ export class Player extends Phaser.GameObjects.Container {
 
     // Tornado cooldown
     if (this.tornadoCooldown > 0) this.tornadoCooldown -= dt;
+    if (this.tornadoActive) this.tornadoTime += dt;
 
     if (this.state === 'hurt') return;
+
+    // Tornado in progress — block other actions
+    if (this.tornadoActive) {
+      this.setDepth(DEPTH_BASE + this.y);
+      return;
+    }
 
     // Ground attacks
     if (!this.isAttacking) {
@@ -200,14 +207,67 @@ export class Player extends Phaser.GameObjects.Container {
     this.attackHit = false;
     this.tornadoActive = true;
     this.tornadoHitRegistered = false;
+    this.tornadoTime = 0;
     this.tornadoCooldown = TORNADO_COOLDOWN;
-    this.state = 'kick';
+    this.state = 'tornado';
     this.invincible = true;
-    this.invincibleTimer = 600;
-    this.sprite.play('player-kick');
+    this.invincibleTimer = 800;
     this.lastAttackType = 'tornado';
     this.comboSequence.push('tornado');
     if (this.comboSequence.length > 5) this.comboSequence.shift();
+
+    // Freeze on a strong kick pose
+    this.sprite.play('player-kick');
+    this.sprite.anims.pause();
+
+    // Energy tint
+    this.sprite.setTint(0x44ffff);
+
+    // Horizontal spin — rapid scaleX flips simulate spinning like a top
+    this.scene.tweens.add({
+      targets: this.sprite,
+      scaleX: -1,
+      duration: 75,
+      yoyo: true,
+      repeat: 3,
+      ease: 'Sine.easeInOut',
+    });
+
+    // Small rise and fall
+    this.scene.tweens.add({
+      targets: this.sprite,
+      y: { from: 0, to: -15 },
+      duration: 300,
+      yoyo: true,
+      ease: 'Sine.easeOut',
+    });
+
+    // Vertical scale pulse for impact feel
+    this.scene.tweens.add({
+      targets: this.sprite,
+      scaleY: 1.3,
+      duration: 300,
+      yoyo: true,
+      ease: 'Sine.easeInOut',
+    });
+
+    // End tornado
+    this.scene.time.delayedCall(650, () => {
+      if (!this.tornadoActive) return; // interrupted by hit
+      this.endTornado();
+    });
+  }
+
+  endTornado() {
+    this.tornadoActive = false;
+    this.isAttacking = false;
+    this.attackHit = false;
+    this.state = 'idle';
+    this.sprite.clearTint();
+    this.sprite.setScale(1);
+    this.sprite.setPosition(0, 0);
+    this.sprite.setFlipX(this.facing === -1);
+    this.sprite.play('player-idle');
   }
 
   registerHit() {
@@ -218,39 +278,41 @@ export class Player extends Phaser.GameObjects.Container {
   getAttackBox() {
     if (!this.isAttacking || this.attackHit) return null;
 
-    const frame = this.sprite.anims.currentFrame;
-    if (!frame) return null;
-    const idx = frame.index;
-
     let range = 0;
     let damage = 0;
-    let fxType = 'hit'; // which FX to spawn
+    let fxType = 'hit';
 
-    switch (this.state) {
-      case 'punch':
-        if (idx < 2) return null;
-        range = PUNCH_RANGE;
-        damage = PUNCH_DAMAGE;
-        break;
-      case 'jab':
-        if (idx < 1) return null;
-        range = PUNCH_RANGE - 5;
-        damage = JAB_DAMAGE;
-        break;
-      case 'kick':
-        if (idx < 2) return null;
-        if (this.tornadoActive) {
-          range = TORNADO_RANGE;
-          damage = TORNADO_DAMAGE;
-          fxType = 'tornado';
-        } else {
+    if (this.state === 'tornado') {
+      // Hitbox active after 200ms wind-up
+      if (this.tornadoTime < 200) return null;
+      range = TORNADO_RANGE;
+      damage = TORNADO_DAMAGE;
+      fxType = 'tornado';
+    } else {
+      const frame = this.sprite.anims.currentFrame;
+      if (!frame) return null;
+      const idx = frame.index;
+
+      switch (this.state) {
+        case 'punch':
+          if (idx < 2) return null;
+          range = PUNCH_RANGE;
+          damage = PUNCH_DAMAGE;
+          break;
+        case 'jab':
+          if (idx < 1) return null;
+          range = PUNCH_RANGE - 5;
+          damage = JAB_DAMAGE;
+          break;
+        case 'kick':
+          if (idx < 2) return null;
           range = KICK_RANGE;
           damage = KICK_DAMAGE;
           fxType = 'slash';
-        }
-        break;
-      default:
-        return null;
+          break;
+        default:
+          return null;
+      }
     }
 
     // Combo bonus: every 3rd consecutive hit gets bonus damage
@@ -280,7 +342,14 @@ export class Player extends Phaser.GameObjects.Container {
 
     this.state = 'hurt';
     this.isAttacking = false;
-    this.tornadoActive = false;
+    if (this.tornadoActive) {
+      this.tornadoActive = false;
+      this.scene.tweens.killTweensOf(this.sprite);
+      this.sprite.clearTint();
+      this.sprite.setScale(1);
+      this.sprite.setPosition(0, 0);
+      this.sprite.setFlipX(this.facing === -1);
+    }
     this.sprite.play('player-hurt');
 
     const dir = this.x < fromX ? -1 : 1;

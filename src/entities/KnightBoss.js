@@ -82,7 +82,7 @@ export class KnightBoss extends Phaser.GameObjects.Container {
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     if (dx !== 0) this.facing = dx > 0 ? 1 : -1;
-    this.sprite.setFlipX(this.facing === 1);
+    this.sprite.setFlipX(this.facing === -1);
 
     if (this.state === STATE.IDLE) {
       this.stateTimer += dt;

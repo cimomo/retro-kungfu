@@ -82,7 +82,7 @@ export class WaveManager {
 
   spawnBoss(type) {
     const camCenter = this.scene.cameras.main.scrollX + GAME_WIDTH / 2;
-    const x = camCenter + GAME_WIDTH / 2 + 60;
+    const x = Math.min(camCenter + GAME_WIDTH / 2 - 40, 2350);
     const y = (PLAY_Y_MIN + PLAY_Y_MAX) / 2;
 
     switch (type) {

@@ -207,9 +207,11 @@ export class GameScene extends Phaser.Scene {
 
     // Spawn tornado FX once on the player
     if (isTornado && !this.player.tornadoHitRegistered) {
+      this.spawnFx('shield-fx', this.player.x, this.player.y - 25);
       this.spawnFx('shock-fx', this.player.x, this.player.y - 30);
       this.audio.play('tornado');
-      this.screenShake(4);
+      this.screenShake(5);
+      this.cameras.main.flash(150, 100, 220, 255, true);
     }
 
     let hitAny = false;

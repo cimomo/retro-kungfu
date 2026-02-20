@@ -33,7 +33,7 @@ export const COMBO_BONUS = 5;
 export const PUNCH_RANGE = 40;
 export const KICK_RANGE = 50;
 export const TORNADO_DAMAGE = 30;
-export const TORNADO_RANGE = 70;
+export const TORNADO_RANGE = 120;
 export const TORNADO_COOLDOWN = 4000;
 
 // Enemy - Punk
@@ -57,7 +57,7 @@ export const KNIGHT_DAMAGE = 15;
 export const KNIGHT_ATTACK_RANGE = 50;
 
 // Boss - Demon
-export const DEMON_SPEED = 50;
+export const DEMON_SPEED = 90;
 export const DEMON_HP = 300;
 export const DEMON_MELEE_DAMAGE = 25;
 export const DEMON_BREATH_DAMAGE = 15;

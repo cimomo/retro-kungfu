@@ -13,12 +13,12 @@ export class DemonBoss extends Phaser.GameObjects.Container {
 
     this.hp = DEMON_HP;
     this.maxHp = DEMON_HP;
-    this.state = STATE.IDLE;
+    this.state = STATE.WALK;
     this.facing = -1;
     this.isAttacking = false;
     this.attackHit = false;
     this.stateTimer = 0;
-    this.idlePause = 1000;
+    this.idlePause = 400;
     this.recoverTimer = 0;
     this.attackCount = 0;
     this.isBoss = true;
@@ -39,6 +39,7 @@ export class DemonBoss extends Phaser.GameObjects.Container {
   }
 
   onAnimComplete(anim) {
+    if (this.state === STATE.DEAD) return;
     if (anim.key === 'demon-attack') {
       this.isAttacking = false;
       this.attackHit = false;
@@ -102,8 +103,8 @@ export class DemonBoss extends Phaser.GameObjects.Container {
     if (this.state === STATE.IDLE) {
       this.stateTimer += dt;
       if (this.stateTimer >= this.idlePause) {
-        // Choose breath attack if far, melee if close
-        if (dist > 150 && Phaser.Math.Between(0, 2) === 0) {
+        // Breath only at medium range; always walk in from far away
+        if (dist > 100 && dist < 250 && Phaser.Math.Between(0, 2) === 0) {
           this.doBreath(playerX, playerY);
         } else {
           this.state = STATE.WALK;
@@ -116,7 +117,10 @@ export class DemonBoss extends Phaser.GameObjects.Container {
       if (dist < DEMON_ATTACK_RANGE && Math.abs(dy) < 25) {
         this.doMelee();
       } else {
-        const speed = (this.enraged ? DEMON_SPEED * 1.5 : DEMON_SPEED) * (dt / 1000);
+        // Move faster when far away to close the gap
+        let speedMul = this.enraged ? 1.5 : 1;
+        if (dist > 200) speedMul *= 2;
+        const speed = DEMON_SPEED * speedMul * (dt / 1000);
         const nx = dx / (dist || 1);
         const ny = dy / (dist || 1);
         this.x += nx * speed;
@@ -200,10 +204,11 @@ export class DemonBoss extends Phaser.GameObjects.Container {
       this.isAttacking = false;
       return;
     }
-    if (this.state === STATE.RECOVER) {
+    // React to hits during idle, walk, or recover (not during attack/breath)
+    if (!this.isAttacking) {
       this.state = STATE.HURT;
       this.stateTimer = 400;
-      this.isAttacking = false;
+      this.sprite.play('demon-idle');
       const dir = this.x < fromX ? -1 : 1;
       this.x += dir * 6;
     }
