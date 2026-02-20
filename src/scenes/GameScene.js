@@ -149,6 +149,7 @@ export class GameScene extends Phaser.Scene {
     this.player.update(dt, this.inputManager, camLeft, camRight);
     this.hud.updatePlayerHP(this.player.hp, this.player.maxHp);
     this.hud.updateLives(this.player.lives);
+    this.hud.updateTornadoCooldown(this.player.tornadoCooldown);
 
     // Combo display
     if (this.player.comboCount >= 2) {
@@ -202,13 +203,24 @@ export class GameScene extends Phaser.Scene {
     const atkBox = this.player.getAttackBox();
     if (!atkBox) return;
 
+    const isTornado = atkBox.fxType === 'tornado';
+
+    // Spawn tornado FX once on the player
+    if (isTornado && !this.player.tornadoHitRegistered) {
+      this.spawnFx('shock-fx', this.player.x, this.player.y - 30);
+      this.audio.play('tornado');
+      this.screenShake(4);
+    }
+
+    let hitAny = false;
     for (const enemy of enemies) {
       if (enemy.isDead || enemy.cleaned) continue;
       if (enemy.state === 'hurt' && !enemy.isBoss) continue;
 
-      if (this.boxOverlap(atkBox, enemy, enemy.isBoss ? 25 : 15)) {
+      const tolerance = isTornado ? 35 : (enemy.isBoss ? 25 : 15);
+      if (this.boxOverlap(atkBox, enemy, tolerance)) {
         enemy.takeHit(atkBox.damage, this.player.x);
-        this.player.attackHit = true;
+        hitAny = true;
         this.player.registerHit();
 
         const basePoints = enemy.isBoss ? 50 : 100;
@@ -221,11 +233,22 @@ export class GameScene extends Phaser.Scene {
 
         const fxX = enemy.x - (enemy.facing || 0) * 10;
         const fxY = enemy.y - (enemy.isBoss ? 45 : 30);
-        this.spawnFx(atkBox.fxType === 'slash' ? 'slash-fx' : 'hit-fx', fxX, fxY);
+        if (!isTornado) {
+          this.spawnFx(atkBox.fxType === 'slash' ? 'slash-fx' : 'hit-fx', fxX, fxY);
+        } else {
+          this.spawnFx('slash-circ-fx', fxX, fxY);
+        }
         this.audio.play(enemy.isBoss ? 'boss-hit' : 'hit');
         if (atkBox.damage >= 15 || enemy.isBoss) this.screenShake(enemy.isBoss ? 3 : 2);
-        break;
+
+        // Normal attacks hit one enemy; tornado hits all
+        if (!isTornado) break;
       }
+    }
+
+    if (hitAny) {
+      this.player.attackHit = true;
+      if (isTornado) this.player.tornadoHitRegistered = true;
     }
   }
 
@@ -256,7 +279,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   boxOverlapPlayer(atkBox, player) {
-    if (player.isJumping || player.invincible || player.isDead) return false;
+    if (player.invincible || player.isDead) return false;
     return Math.abs(atkBox.x - player.x) < atkBox.width / 2 + 15 && Math.abs(atkBox.y - player.y) < 20;
   }
 

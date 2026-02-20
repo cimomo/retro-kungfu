@@ -81,12 +81,12 @@ export class TitleScene extends Phaser.Scene {
     });
 
     // Controls hint
-    this.add.text(GAME_WIDTH / 2, 220, 'Z=Punch  X=Kick  Space=Jump  Arrows=Move', {
-      fontSize: '6px', fontFamily: 'monospace', color: '#666',
+    this.add.text(GAME_WIDTH / 2, 210, 'ARROWS Move  Z Punch  X Kick  SPACE Special', {
+      fontSize: '7px', fontFamily: 'monospace', color: '#88aacc',
     }).setOrigin(0.5).setDepth(20);
 
-    this.add.text(GAME_WIDTH / 2, 235, 'Touch: D-pad + A/B/C buttons', {
-      fontSize: '6px', fontFamily: 'monospace', color: '#666',
+    this.add.text(GAME_WIDTH / 2, 228, 'ANY KEY / TAP to start', {
+      fontSize: '7px', fontFamily: 'monospace', color: '#666',
     }).setOrigin(0.5).setDepth(20);
 
     // Start on any key / tap

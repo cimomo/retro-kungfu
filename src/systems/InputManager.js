@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 
 /**
  * Unified input abstraction for keyboard + touch.
- * Reads direction (dx, dy normalized) and action buttons (punch, kick, jump).
+ * Reads direction (dx, dy normalized) and action buttons (punch, kick, special).
  */
 export class InputManager {
   constructor(scene) {
@@ -18,7 +18,7 @@ export class InputManager {
     this.touchDir = { x: 0, y: 0 };
     this.touchPunch = false;
     this.touchKick = false;
-    this.touchJump = false;
+    this.touchSpecial = false;
   }
 
   get dx() {
@@ -45,13 +45,13 @@ export class InputManager {
     return Phaser.Input.Keyboard.JustDown(this.keyX) || this.touchKick;
   }
 
-  get jump() {
-    return Phaser.Input.Keyboard.JustDown(this.keySpace) || this.touchJump;
+  get special() {
+    return Phaser.Input.Keyboard.JustDown(this.keySpace) || this.touchSpecial;
   }
 
   clearTouch() {
     this.touchPunch = false;
     this.touchKick = false;
-    this.touchJump = false;
+    this.touchSpecial = false;
   }
 }

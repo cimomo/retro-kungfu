@@ -32,6 +32,9 @@ export const DIVE_KICK_DAMAGE = 25;
 export const COMBO_BONUS = 5;
 export const PUNCH_RANGE = 40;
 export const KICK_RANGE = 50;
+export const TORNADO_DAMAGE = 30;
+export const TORNADO_RANGE = 70;
+export const TORNADO_COOLDOWN = 4000;
 
 // Enemy - Punk
 export const PUNK_SPEED = 60;

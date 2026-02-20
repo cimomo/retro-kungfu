@@ -65,7 +65,7 @@ export class TouchControls {
     // Check buttons first (right side)
     if (this.hitBtn(this.btnA, px, py)) { this.input.touchPunch = true; return; }
     if (this.hitBtn(this.btnB, px, py)) { this.input.touchKick = true; return; }
-    if (this.hitBtn(this.btnC, px, py)) { this.input.touchJump = true; return; }
+    if (this.hitBtn(this.btnC, px, py)) { this.input.touchSpecial = true; return; }
 
     // D-pad (left side of screen)
     if (px < GAME_WIDTH / 2) {

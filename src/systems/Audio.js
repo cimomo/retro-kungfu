@@ -33,7 +33,7 @@ export class Audio {
       case 'death': this.sweep(0.15, 400, 80, 0.2); break;
       case 'boss-hit': this.tone(0.06, 150, 80, 0.25); break;
       case 'boss-roar': this.sweep(0.3, 100, 50, 0.3); break;
-      case 'jump': this.tone(0.05, 400, 600, 0.08); break;
+      case 'tornado': this.sweep(0.25, 200, 600, 0.25); this.noise(0.2, 600, 0.15); break;
     }
   }
 

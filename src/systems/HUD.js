@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { GAME_WIDTH, GAME_HEIGHT } from '../utils/constants.js';
+import { GAME_WIDTH, GAME_HEIGHT, TORNADO_COOLDOWN } from '../utils/constants.js';
 
 export class HUD {
   constructor(scene) {
@@ -18,6 +18,19 @@ export class HUD {
     // Lives display
     this.livesIcons = [];
     this.updateLives(3);
+
+    // Tornado cooldown bar
+    this.tornadoLabel = scene.add.text(8, 36, 'TORNADO', {
+      fontSize: '6px', fontFamily: 'monospace', color: '#88ccff',
+    }).setScrollFactor(0).setDepth(2000);
+    this.tornadoBarBg = scene.add.rectangle(8, 44, 50, 4, 0x222233)
+      .setOrigin(0, 0).setScrollFactor(0).setDepth(2000);
+    this.tornadoBarFill = scene.add.rectangle(8, 44, 50, 4, 0x44aaff)
+      .setOrigin(0, 0).setScrollFactor(0).setDepth(2001);
+    this.tornadoReady = scene.add.text(60, 42, 'READY', {
+      fontSize: '6px', fontFamily: 'monospace', color: '#44ffff',
+    }).setScrollFactor(0).setDepth(2002).setVisible(false);
+    this._tornadoWasReady = false;
 
     // Score
     this.scoreValue = 0;
@@ -77,6 +90,28 @@ export class HUD {
         fontSize: '10px', color: '#ff4444',
       }).setScrollFactor(0).setDepth(2000);
       this.livesIcons.push(icon);
+    }
+  }
+
+  updateTornadoCooldown(cooldown) {
+    const ratio = Math.max(0, 1 - cooldown / TORNADO_COOLDOWN);
+    this.tornadoBarFill.width = 50 * ratio;
+    const ready = cooldown <= 0;
+    if (ready) {
+      this.tornadoBarFill.setFillStyle(0x44ffff);
+      this.tornadoReady.setVisible(true);
+      if (!this._tornadoWasReady) {
+        this._tornadoWasReady = true;
+        this.scene.tweens.add({
+          targets: this.tornadoReady,
+          alpha: { from: 0, to: 1 },
+          duration: 300,
+        });
+      }
+    } else {
+      this.tornadoBarFill.setFillStyle(0x44aaff);
+      this.tornadoReady.setVisible(false);
+      this._tornadoWasReady = false;
     }
   }
 
