@@ -344,36 +344,104 @@ share.
 
 ---
 
+## Milestone 4 — User Feedback & Polish
+
+**Goal:** Address player feedback — replace the underused jump with a flashy special attack,
+improve UI readability, fix boss behavior issues, and add quality-of-life improvements.
+
+### M4 Features (builds on M3)
+
+#### Tornado Kick (replaces Jump)
+
+The jump mechanic (Space / C button) was removed and replaced with a **Tornado Kick** — a
+dramatic area-of-effect special attack.
+
+- **Damage:** 30, **Range:** 120px radius centered on the player
+- **Hits all** nearby enemies simultaneously (normal attacks hit only one)
+- **Player is invincible** during the spin
+- **4-second cooldown** (`TORNADO_COOLDOWN`) — cannot be spammed
+- **200ms wind-up** before the hitbox activates
+- **Tween-driven visuals** (no dedicated animation):
+  - Sprite freezes in kick pose, tinted cyan
+  - Rapid horizontal spin via `scaleX` flips (left-right-left-right, 4 full spins)
+  - Player rises 15px then floats back down
+  - Vertical scale pulse (1.3x) for impact feel
+- **Layered FX on impact:**
+  - `shield-fx` + `shock-fx` on the player
+  - `slash-circ-fx` on each hit enemy
+  - Blue screen flash, strong screen shake
+  - Custom procedural sound (rising sweep + noise burst)
+- **HUD cooldown bar:** 50px bar below lives display labeled "TORNADO", fills as cooldown
+  recharges, turns cyan with "READY" text when available
+- All tweens cleaned up on interrupt (player hit or death) via `killTweensOf`
+
+#### Title Screen Instructions
+
+- Control hints displayed below the "Press Start" prompt:
+  `ARROWS Move  Z Punch  X Kick  SPACE Special`
+- White text with dark stroke outline for contrast against parallax background
+- "ANY KEY / TAP to start" in light grey below
+
+#### Leaderboard on Title Screen
+
+- Top 5 scores shown on the title screen (from localStorage)
+- Gold color for #1, grey for the rest
+- Falls back to "HIGH SCORE: X" if no leaderboard entries exist
+
+#### Boss HP Bar Repositioned
+
+- Moved from full-width center-top to **top-right corner** (80px wide)
+- Mirrors the player HP bar layout on the left — label above, bar below
+- Right-aligned boss name label
+
+#### Knight Boss Fix
+
+- Knight sprite faces **right** by default (opposite of other enemies)
+- Flip logic inverted: `setFlipX(this.facing === -1)` so it correctly faces the player
+
+#### Demon Boss Overhaul
+
+The demon boss was getting stuck off-screen. Multiple fixes applied:
+
+- **Starts in WALK state** — immediately approaches the player, no initial idle delay
+- **Breath attack only at medium range** (100-250px) — no longer wastes time breathing from
+  off-screen; always walks in when far away
+- **Double movement speed when far** (>200px) — closes the gap quickly after spawning
+- **Base speed increased** from 50 to 90 (`DEMON_SPEED`)
+- **Interruptible during idle/walk/recover** — was previously only interruptible during
+  recover, making the demon feel unresponsive to player hits
+- **`onAnimComplete` guards DEAD state** — prevents the demon from reviving if killed
+  mid-attack animation
+- **Boss spawn position** moved from 60px off-screen to 40px inside the visible screen edge,
+  capped at x=2350 to avoid world boundary issues
+
+### M4 Control Changes
+
+Jump-related moves (jump kick, dive kick) were removed. The C / Space button now triggers
+the Tornado Kick special.
+
+---
+
 ## Controls Reference
 
 ### Keyboard
 
-| Key       | Action     |
-| --------- | ---------- |
-| Arrow keys | Move (8-dir) |
-| Z         | Punch / Jab |
-| X         | Kick        |
-| Space     | Jump        |
-| Enter     | Start / Confirm |
-
-### Gamepad (standard mapping)
-
-| Button   | Action     |
-| -------- | ---------- |
-| D-pad / Left stick | Move |
-| A (Cross)  | Jump     |
-| X (Square) | Punch    |
-| B (Circle) | Kick     |
-| Start      | Pause    |
+| Key        | Action          |
+| ---------- | --------------- |
+| Arrow keys | Move (8-dir)    |
+| Z          | Punch / Jab     |
+| X          | Kick            |
+| Space      | Tornado Kick    |
+| Enter      | Start / Confirm |
 
 ### Touch
 
-| Control        | Position     |
-| -------------- | ------------ |
-| Virtual D-pad  | Bottom-left  |
-| A button (Punch) | Bottom-right |
-| B button (Kick)  | Bottom-right |
-| C button (Jump)  | Bottom-right |
+| Control              | Position     |
+| -------------------- | ------------ |
+| Virtual D-pad        | Bottom-left  |
+| A button (Punch)     | Bottom-right |
+| B button (Kick)      | Bottom-right |
+| C button (Tornado)   | Bottom-right |
 
 ---
 
@@ -386,8 +454,9 @@ PLAYER_LIVES        = 3
 PUNCH_DAMAGE        = 10
 KICK_DAMAGE         = 15
 JAB_DAMAGE          = 7
-JUMP_KICK_DAMAGE    = 20
-DIVE_KICK_DAMAGE    = 25
+TORNADO_DAMAGE      = 30
+TORNADO_RANGE       = 120
+TORNADO_COOLDOWN    = 4000  # ms
 
 PUNK_SPEED          = 60
 PUNK_HP             = 30
@@ -402,7 +471,7 @@ KNIGHT_SPEED        = 80
 KNIGHT_HP           = 150
 KNIGHT_DAMAGE       = 15
 
-DEMON_SPEED         = 50
+DEMON_SPEED         = 90
 DEMON_HP            = 300
 DEMON_MELEE_DAMAGE  = 25
 DEMON_BREATH_DAMAGE = 15
