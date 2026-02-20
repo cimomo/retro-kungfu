@@ -171,7 +171,6 @@ export class Player extends Phaser.GameObjects.Container {
 
       this.x = Phaser.Math.Clamp(this.x, camLeft + 30, camRight - 30);
       this.y = Phaser.Math.Clamp(this.y, PLAY_Y_MIN, PLAY_Y_MAX);
-      this.groundY = this.y;
 
       if (dx !== 0) this.facing = dx > 0 ? 1 : -1;
       this.sprite.setFlipX(this.facing === -1);
