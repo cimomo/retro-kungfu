@@ -1,9 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(sips:*)",
-      "Bash(pkill:*)",
-      "Bash(npx vite build:*)"
-    ]
-  }
-}
