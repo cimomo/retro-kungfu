@@ -82,11 +82,13 @@ export class TitleScene extends Phaser.Scene {
 
     // Controls hint
     this.add.text(GAME_WIDTH / 2, 210, 'ARROWS Move  Z Punch  X Kick  SPACE Special', {
-      fontSize: '7px', fontFamily: 'monospace', color: '#88aacc',
+      fontSize: '7px', fontFamily: 'monospace', color: '#ffffff',
+      stroke: '#000', strokeThickness: 3,
     }).setOrigin(0.5).setDepth(20);
 
     this.add.text(GAME_WIDTH / 2, 228, 'ANY KEY / TAP to start', {
-      fontSize: '7px', fontFamily: 'monospace', color: '#666',
+      fontSize: '7px', fontFamily: 'monospace', color: '#cccccc',
+      stroke: '#000', strokeThickness: 2,
     }).setOrigin(0.5).setDepth(20);
 
     // Start on any key / tap

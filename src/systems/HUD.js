@@ -44,14 +44,16 @@ export class HUD {
       stroke: '#000', strokeThickness: 2,
     }).setOrigin(0.5).setScrollFactor(0).setDepth(2002).setVisible(false);
 
-    // Boss health bar (hidden until boss fight)
-    this.bossBarBg = scene.add.rectangle(GAME_WIDTH / 2, 26, GAME_WIDTH - 40, 6, 0x333333)
-      .setScrollFactor(0).setDepth(2000).setVisible(false);
-    this.bossBarFill = scene.add.rectangle(GAME_WIDTH / 2, 26, GAME_WIDTH - 40, 6, 0xff2222)
-      .setScrollFactor(0).setDepth(2001).setVisible(false);
-    this.bossLabel = scene.add.text(GAME_WIDTH / 2, 18, 'OGRE', {
+    // Boss health bar — right-aligned, mirrors player HP layout
+    this.bossBarWidth = 80;
+    this.bossBarX = GAME_WIDTH - 8 - this.bossBarWidth;
+    this.bossLabel = scene.add.text(GAME_WIDTH - 8, 6, 'BOSS', {
       fontSize: '7px', fontFamily: 'monospace', color: '#ff6666',
-    }).setOrigin(0.5, 0).setScrollFactor(0).setDepth(2000).setVisible(false);
+    }).setOrigin(1, 0).setScrollFactor(0).setDepth(2000).setVisible(false);
+    this.bossBarBg = scene.add.rectangle(this.bossBarX, 16, this.bossBarWidth, 6, 0x333333)
+      .setOrigin(0, 0).setScrollFactor(0).setDepth(2000).setVisible(false);
+    this.bossBarFill = scene.add.rectangle(this.bossBarX, 16, this.bossBarWidth, 6, 0xff2222)
+      .setOrigin(0, 0).setScrollFactor(0).setDepth(2001).setVisible(false);
 
     // "GO -->" prompt
     this.goText = scene.add.text(GAME_WIDTH - 40, GAME_HEIGHT / 2, 'GO >>>', {
@@ -155,7 +157,7 @@ export class HUD {
 
   updateBossHP(hp, maxHp) {
     const ratio = Math.max(0, hp / maxHp);
-    this.bossBarFill.width = (GAME_WIDTH - 40) * ratio;
+    this.bossBarFill.width = this.bossBarWidth * ratio;
   }
 
   hideBossBar() {
